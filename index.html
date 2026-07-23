@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Brillita - Registro Diario</title>
+
+<!-- PWA / iOS home screen -->
+<link rel="manifest" href="manifest.json"/>
+<meta name="theme-color" content="#00666d"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Brillita"/>
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-container-highest": "#e4e2e2",
+          "on-secondary-fixed": "#331200",
+          "on-primary-container": "#f5feff",
+          "surface-container-high": "#eae8e7",
+          "surface-tint": "#006970",
+          "secondary": "#9b4500",
+          "inverse-primary": "#70d6df",
+          "on-secondary-container": "#672c00",
+          "tertiary": "#595d5d",
+          "error": "#ba1a1a",
+          "surface-container-low": "#f5f3f3",
+          "secondary-fixed": "#ffdbc9",
+          "error-container": "#ffdad6",
+          "tertiary-fixed-dim": "#c4c7c7",
+          "secondary-fixed-dim": "#ffb68d",
+          "surface-container": "#efeded",
+          "surface-bright": "#fbf9f8",
+          "surface": "#fbf9f8",
+          "inverse-on-surface": "#f2f0f0",
+          "primary": "#00666d",
+          "on-primary-fixed-variant": "#004f54",
+          "surface-container-lowest": "#ffffff",
+          "tertiary-container": "#717575",
+          "primary-container": "#00818a",
+          "on-secondary-fixed-variant": "#763300",
+          "on-tertiary": "#ffffff",
+          "on-error": "#ffffff",
+          "on-primary": "#ffffff",
+          "inverse-surface": "#303030",
+          "surface-variant": "#e4e2e2",
+          "on-secondary": "#ffffff",
+          "on-surface": "#1b1c1c",
+          "primary-fixed-dim": "#70d6df",
+          "tertiary-fixed": "#e0e3e3",
+          "on-error-container": "#93000a",
+          "on-tertiary-fixed": "#181c1d",
+          "on-tertiary-fixed-variant": "#434748",
+          "outline": "#6d797a",
+          "on-tertiary-container": "#fafdfd",
+          "secondary-container": "#fc8a40",
+          "surface-dim": "#dbd9d9",
+          "on-background": "#1b1c1c",
+          "primary-fixed": "#8df2fc",
+          "on-primary-fixed": "#002022",
+          "outline-variant": "#bdc9ca",
+          "on-surface-variant": "#3d494a",
+          "background": "#fbf9f8"
+        },
+        borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+        spacing: { "stack-sm": "4px", "stack-lg": "24px", gutter: "16px", "container-padding": "20px", base: "8px", "stack-md": "12px" },
+        fontFamily: {
+          "headline-lg-mobile": ["Inter"], "body-md": ["Inter"], "headline-md": ["Inter"],
+          "headline-lg": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], "label-sm": ["Inter"]
+        },
+        fontSize: {
+          "headline-lg-mobile": ["28px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+          "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+          "headline-md-mobile": ["20px", { lineHeight: "26px", fontWeight: "700" }],
+          "headline-md": ["24px", { lineHeight: "30px", fontWeight: "600" }],
+          "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+          "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+          "label-md": ["14px", { lineHeight: "20px", letterSpacing: "0.01em", fontWeight: "600" }],
+          "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }]
+        }
+      },
+    },
+  }
+</script>
+
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #fbf9f8; color: #1b1c1c; -webkit-tap-highlight-color: transparent; min-height: max(884px, 100dvh); }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; vertical-align: middle; }
+  .input-minimal { background-color: #f5f3f3; border: none; border-radius: 0.75rem; padding: 1rem; width: 100%; transition: all 0.2s ease; font-variant-numeric: tabular-nums; }
+  .input-minimal:focus { outline: 2px solid #00666d; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0, 105, 112, 0.08); }
+  .card-shadow { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); }
+  .progress-track { height: 8px; background-color: #e4e2e2; border-radius: 9999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #00666d 0%, #00818a 100%); border-radius: 9999px; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+  .animated-entry { animation: slideUp 0.5s ease-out forwards; opacity: 0; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .view { display: none; }
+  .view.active { display: block; }
+  .nav-btn.active { background-color: #fc8a40; color: #331200; }
+  .day-bar-track { width: 10px; height: 64px; background: #e4e2e2; border-radius: 9999px; overflow: hidden; display: flex; align-items: flex-end; }
+  .day-bar-fill { width: 100%; background: linear-gradient(180deg, #00818a 0%, #00666d 100%); border-radius: 9999px; transition: height 0.6s ease; }
+  .entry-swipe { transition: transform 0.15s ease, opacity 0.15s ease; }
+  ::-webkit-scrollbar { display: none; }
+  @media (prefers-reduced-motion: reduce) { .animated-entry, .progress-fill, .day-bar-fill, .entry-swipe { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-40 flex items-center justify-between px-container-padding h-16 bg-surface transition-colors">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline-md-mobile shrink-0">
+      <span id="avatarInitial">B</span>
+    </div>
+    <h1 id="greeting" class="font-headline-md-mobile text-headline-md-mobile text-primary">¡Hola!</h1>
+  </div>
+  <button id="themeInfoBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150" aria-label="Info">
+    <span class="material-symbols-outlined text-primary">savings</span>
+  </button>
+</header>
+
+<main class="flex-1 px-container-padding pt-6 pb-32 max-w-md mx-auto w-full">
+
+  <!-- ===================== RECORD VIEW ===================== -->
+  <section id="view-record" class="view active space-y-stack-lg">
+
+    <div class="animated-entry" style="animation-delay:.05s">
+      <div class="relative h-32 rounded-xl overflow-hidden mb-gutter bg-gradient-to-br from-primary to-primary-container flex items-end p-4">
+        <div>
+          <p id="todayDate" class="text-white font-label-md text-label-md opacity-90">—</p>
+          <h2 class="text-white font-headline-md text-headline-md-mobile">¿Qué logramos hoy?</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="animated-entry space-y-stack-md" style="animation-delay:.1s">
+      <div class="bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container">
+        <form class="space-y-gutter" id="dailyForm" novalidate>
+          <div class="space-y-stack-sm">
+            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="entryDate">Fecha</label>
+            <input class="input-minimal text-body-md font-body-md text-on-surface" id="entryDate" type="date" required/>
+          </div>
+          <div class="space-y-stack-sm">
+            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="hours">Horas trabajadas</label>
+            <input class="input-minimal text-body-lg font-body-lg text-primary" id="hours" inputmode="decimal" placeholder="0.0" required step="0.25" min="0" max="24" type="number"/>
+          </div>
+          <div class="space-y-stack-sm">
+            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="rate">Valor por hora ($)</label>
+            <input class="input-minimal text-body-lg font-body-lg text-primary" id="rate" inputmode="decimal" placeholder="0.00" required step="0.01" min="0" type="number"/>
+          </div>
+          <div class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
+            <span class="font-label-sm text-label-sm text-on-surface-variant">Total del registro</span>
+            <span id="livePreview" class="font-headline-md text-headline-md-mobile text-secondary">$0.00</span>
+          </div>
+          <button class="w-full h-14 bg-primary text-on-primary rounded-full font-headline-md text-headline-md-mobile flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all duration-200" type="submit" id="submitBtn">
+            <span class="material-symbols-outlined">task_alt</span>
+            Registrar Día
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="animated-entry space-y-stack-md" style="animation-delay:.15s">
+      <div class="flex items-center justify-between">
+        <h3 class="font-label-md text-label-md text-on-surface">Resumen de hoy</h3>
+        <span id="todayVsYesterday" class="font-label-sm text-label-sm text-primary flex items-center gap-1"></span>
+      </div>
+      <div class="grid grid-cols-2 gap-gutter">
+        <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+          <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia Total</p>
+          <p id="todayEarnings" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
+        </div>
+        <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+          <p class="font-label-sm text-label-sm text-on-surface-variant">Meta Diaria</p>
+          <div class="mt-2 space-y-2">
+            <div class="progress-track"><div class="progress-fill" id="goalProgressFill"></div></div>
+            <p class="font-label-sm text-label-sm text-on-surface text-right" id="goalProgressPct">0%</p>
+          </div>
+        </div>
+      </div>
+      <div id="todayMessageCard" class="bg-primary-container/10 p-4 rounded-xl flex items-center gap-4">
+        <div class="bg-primary-container text-on-primary-container w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined" id="todayMessageIcon">bedtime</span>
+        </div>
+        <div>
+          <p class="font-label-md text-label-md text-primary" id="todayMessageTitle">Aún no registras horas hoy</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant" id="todayMessageSub">Agrega tu primer registro del día.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="animated-entry space-y-stack-sm" style="animation-delay:.2s" id="todayEntriesWrap">
+      <h3 class="font-label-md text-label-md text-on-surface">Registros de hoy</h3>
+      <div id="todayEntriesList" class="space-y-2"></div>
+    </div>
+
+  </section>
+
+  <!-- ===================== WEEKLY VIEW ===================== -->
+  <section id="view-weekly" class="view space-y-stack-lg">
+    <div class="animated-entry" style="animation-delay:.05s">
+      <h2 class="font-headline-md text-headline-md text-primary mb-1">Resumen Semanal</h2>
+      <p class="font-label-sm text-label-sm text-on-surface-variant" id="weekRangeLabel">—</p>
+    </div>
+
+    <div class="animated-entry grid grid-cols-2 gap-gutter" style="animation-delay:.1s">
+      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Horas Semana</p>
+        <p id="weekHours" class="font-headline-md text-headline-md text-primary mt-1">0.0h</p>
+      </div>
+      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia Semana</p>
+        <p id="weekEarnings" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
+      </div>
+    </div>
+
+    <div class="animated-entry bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container" style="animation-delay:.15s">
+      <div class="flex items-end justify-between gap-2" id="weekChart"></div>
+    </div>
+
+    <div class="animated-entry space-y-stack-sm" style="animation-delay:.2s">
+      <div class="flex items-center justify-between">
+        <h3 class="font-label-md text-label-md text-on-surface">Historial</h3>
+        <button id="clearAllBtn" class="font-label-sm text-label-sm text-error flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">delete_sweep</span>Borrar todo
+        </button>
+      </div>
+      <div id="historyList" class="space-y-2"></div>
+    </div>
+  </section>
+
+  <!-- ===================== PROFILE VIEW ===================== -->
+  <section id="view-profile" class="view space-y-stack-lg">
+    <div class="animated-entry" style="animation-delay:.05s">
+      <h2 class="font-headline-md text-headline-md text-primary mb-1">Perfil</h2>
+      <p class="font-label-sm text-label-sm text-on-surface-variant">Tus datos se guardan solo en este dispositivo.</p>
+    </div>
+
+    <div class="animated-entry bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container space-y-gutter" style="animation-delay:.1s">
+      <div class="space-y-stack-sm">
+        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="profileName">Nombre</label>
+        <input class="input-minimal text-body-md font-body-md text-on-surface" id="profileName" placeholder="Tu nombre" type="text"/>
+      </div>
+      <div class="space-y-stack-sm">
+        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="defaultRate">Valor por hora predeterminado ($)</label>
+        <input class="input-minimal text-body-md font-body-md text-on-surface" id="defaultRate" inputmode="decimal" placeholder="0.00" step="0.01" min="0" type="number"/>
+      </div>
+      <div class="space-y-stack-sm">
+        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="dailyGoal">Meta diaria ($)</label>
+        <input class="input-minimal text-body-md font-body-md text-on-surface" id="dailyGoal" inputmode="decimal" placeholder="0.00" step="0.01" min="0" type="number"/>
+      </div>
+      <button id="saveProfileBtn" class="w-full h-12 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-all duration-200">
+        <span class="material-symbols-outlined text-[18px]">save</span> Guardar
+      </button>
+      <p id="profileSavedMsg" class="text-center font-label-sm text-label-sm text-primary opacity-0 transition-opacity">Guardado ✓</p>
+    </div>
+
+    <div class="animated-entry grid grid-cols-2 gap-gutter" style="animation-delay:.15s">
+      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Horas totales</p>
+        <p id="totalHoursAllTime" class="font-headline-md text-headline-md text-primary mt-1">0.0h</p>
+      </div>
+      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+        <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia total</p>
+        <p id="totalEarningsAllTime" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
+      </div>
+    </div>
+
+    <div class="animated-entry" style="animation-delay:.2s">
+      <button id="exportBtn" class="w-full h-12 bg-surface-container-low text-on-surface rounded-full font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-all duration-200 border border-outline-variant/40">
+        <span class="material-symbols-outlined text-[18px]">download</span> Exportar registros (CSV)
+      </button>
+    </div>
+  </section>
+
+</main>
+
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(0,0,0,0.06)] rounded-t-xl transition-all">
+  <button class="nav-btn active flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all active:scale-90 duration-200 text-on-surface-variant" data-view="record">
+    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_square</span>
+    <span class="font-label-sm text-label-sm mt-1">Registrar</span>
+  </button>
+  <button class="nav-btn flex flex-col items-center justify-center rounded-full px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 duration-200" data-view="weekly">
+    <span class="material-symbols-outlined">equalizer</span>
+    <span class="font-label-sm text-label-sm mt-1">Semanal</span>
+  </button>
+  <button class="nav-btn flex flex-col items-center justify-center rounded-full px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 duration-200" data-view="profile">
+    <span class="material-symbols-outlined">person</span>
+    <span class="font-label-sm text-label-sm mt-1">Perfil</span>
+  </button>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Storage helpers ----------
+  const STORAGE_KEY = "brillita.entries.v1";
+  const PROFILE_KEY = "brillita.profile.v1";
+
+  const loadEntries = () => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  };
+  const saveEntries = (entries) => localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+
+  const loadProfile = () => {
+    try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; }
+    catch { return {}; }
+  };
+  const saveProfile = (p) => localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+
+  let entries = loadEntries();
+  let profile = loadProfile();
+
+  // ---------- Utils ----------
+  const fmtMoney = (n) => "$" + (Number(n) || 0).toFixed(2);
+  const fmtHours = (n) => (Number(n) || 0).toFixed(1).replace(/\.0$/, ".0") + "h";
+  const todayISO = () => {
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0, 10);
+  };
+  const parseISO = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+  const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  const MONTH_NAMES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+
+  function startOfWeek(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0 = Sun
+    const diff = day === 0 ? -6 : 1 - day; // week starts Monday
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function getWeekDates(anchor) {
+    const start = startOfWeek(anchor);
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  }
+
+  const isoOf = (d) => {
+    const c = new Date(d);
+    c.setMinutes(c.getMinutes() - c.getTimezoneOffset());
+    return c.toISOString().slice(0, 10);
+  };
+
+  // ---------- Navigation ----------
+  const views = { record: document.getElementById("view-record"), weekly: document.getElementById("view-weekly"), profile: document.getElementById("view-profile") };
+  const navBtns = document.querySelectorAll(".nav-btn");
+
+  function switchView(name) {
+    Object.entries(views).forEach(([key, el]) => el.classList.toggle("active", key === name));
+    navBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.view === name));
+    if (name === "weekly") renderWeekly();
+    if (name === "profile") renderProfile();
+  }
+
+  navBtns.forEach((btn) => btn.addEventListener("click", () => switchView(btn.dataset.view)));
+
+  // ---------- Header / greeting ----------
+  function renderHeader() {
+    const name = (profile.name || "").trim();
+    document.getElementById("greeting").textContent = name ? `¡Hola, ${name}!` : "¡Hola!";
+    document.getElementById("avatarInitial").textContent = name ? name[0].toUpperCase() : "B";
+    const now = new Date();
+    document.getElementById("todayDate").textContent =
+      `${DAY_NAMES[now.getDay()]}, ${now.getDate()} de ${MONTH_NAMES[now.getMonth()]}`;
+  }
+
+  // ---------- Record view ----------
+  const dailyForm = document.getElementById("dailyForm");
+  const hoursInput = document.getElementById("hours");
+  const rateInput = document.getElementById("rate");
+  const entryDateInput = document.getElementById("entryDate");
+  const livePreview = document.getElementById("livePreview");
+
+  function updatePreview() {
+    const h = parseFloat(hoursInput.value) || 0;
+    const r = parseFloat(rateInput.value) || 0;
+    livePreview.textContent = fmtMoney(h * r);
+  }
+  hoursInput.addEventListener("input", updatePreview);
+  rateInput.addEventListener("input", updatePreview);
+
+  function prefillForm() {
+    entryDateInput.value = todayISO();
+    if (profile.defaultRate != null && profile.defaultRate !== "") {
+      rateInput.value = profile.defaultRate;
+    }
+    updatePreview();
+  }
+
+  dailyForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const hours = parseFloat(hoursInput.value);
+    const rate = parseFloat(rateInput.value);
+    const date = entryDateInput.value || todayISO();
+
+    if (!hours || hours <= 0 || isNaN(rate) || rate < 0) return;
+
+    const btn = document.getElementById("submitBtn");
+    const original = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>';
+
+    entries.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      date, hours, rate, total: hours * rate,
+      createdAt: new Date().toISOString()
+    });
+    saveEntries(entries);
+
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Guardado';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        hoursInput.value = "";
+        updatePreview();
+        renderToday();
+      }, 1100);
+    }, 500);
+  });
+
+  function renderToday() {
+    const today = todayISO();
+    const todays = entries.filter((e) => e.date === today);
+    const totalHours = todays.reduce((s, e) => s + e.hours, 0);
+    const totalEarnings = todays.reduce((s, e) => s + e.total, 0);
+
+    document.getElementById("todayEarnings").textContent = fmtMoney(totalEarnings);
+
+    const goal = parseFloat(profile.dailyGoal) || 0;
+    const pct = goal > 0 ? Math.min(100, Math.round((totalEarnings / goal) * 100)) : 0;
+    document.getElementById("goalProgressFill").style.width = pct + "%";
+    document.getElementById("goalProgressPct").textContent = goal > 0 ? pct + "%" : "Sin meta";
+
+    // yesterday comparison
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    const yesterdayISO = isoOf(y);
+    const yEarnings = entries.filter((e) => e.date === yesterdayISO).reduce((s, e) => s + e.total, 0);
+    const cmp = document.getElementById("todayVsYesterday");
+    if (yEarnings > 0) {
+      const diff = ((totalEarnings - yEarnings) / yEarnings) * 100;
+      const sign = diff >= 0 ? "+" : "";
+      cmp.innerHTML = `<span class="material-symbols-outlined text-[16px]">${diff >= 0 ? "trending_up" : "trending_down"}</span>${sign}${diff.toFixed(0)}% vs ayer`;
+      cmp.classList.toggle("text-primary", diff >= 0);
+      cmp.classList.toggle("text-error", diff < 0);
+    } else {
+      cmp.innerHTML = "";
+    }
+
+    const msgTitle = document.getElementById("todayMessageTitle");
+    const msgSub = document.getElementById("todayMessageSub");
+    const msgIcon = document.getElementById("todayMessageIcon");
+    if (todays.length === 0) {
+      msgIcon.textContent = "bedtime";
+      msgTitle.textContent = "Aún no registras horas hoy";
+      msgSub.textContent = "Agrega tu primer registro del día.";
+    } else if (goal > 0 && totalEarnings >= goal) {
+      msgIcon.textContent = "celebration";
+      msgTitle.textContent = "¡Meta diaria alcanzada!";
+      msgSub.textContent = `Llevas ${fmtHours(totalHours)} productivas hoy.`;
+    } else {
+      msgIcon.textContent = "trending_up";
+      msgTitle.textContent = "¡Vas por muy buen camino!";
+      msgSub.textContent = `Has completado ${fmtHours(totalHours)} productivas.`;
+    }
+
+    // today's entries list
+    const list = document.getElementById("todayEntriesList");
+    const wrap = document.getElementById("todayEntriesWrap");
+    if (todays.length === 0) {
+      wrap.classList.add("hidden");
+      list.innerHTML = "";
+    } else {
+      wrap.classList.remove("hidden");
+      list.innerHTML = todays
+        .slice().reverse()
+        .map((e) => entryRowHTML(e, false))
+        .join("");
+      attachDeleteHandlers(list);
+    }
+  }
+
+  function entryRowHTML(e, showDate) {
+    const dateLabel = showDate ? parseISO(e.date).toLocaleDateString("es-EC", { day: "2-digit", month: "short" }) : null;
+    return `
+      <div class="entry-swipe flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3" data-id="${e.id}">
+        <div>
+          ${dateLabel ? `<p class="font-label-sm text-label-sm text-on-surface-variant">${dateLabel}</p>` : ""}
+          <p class="font-body-md text-body-md text-on-surface">${fmtHours(e.hours)} · ${fmtMoney(e.rate)}/h</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="font-label-md text-label-md text-secondary">${fmtMoney(e.total)}</span>
+          <button class="delete-entry w-8 h-8 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-error-container hover:text-error transition-colors" data-id="${e.id}" aria-label="Eliminar">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function attachDeleteHandlers(container) {
+    container.querySelectorAll(".delete-entry").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        entries = entries.filter((e) => e.id !== id);
+        saveEntries(entries);
+        renderToday();
+        renderWeekly();
+        renderProfile();
+      });
+    });
+  }
+
+  // ---------- Weekly view ----------
+  function renderWeekly() {
+    const now = new Date();
+    const weekDates = getWeekDates(now);
+    const weekISOs = weekDates.map(isoOf);
+
+    const start = weekDates[0], end = weekDates[6];
+    document.getElementById("weekRangeLabel").textContent =
+      `${start.getDate()} - ${end.getDate()} de ${MONTH_NAMES[end.getMonth()]}`;
+
+    const weekEntries = entries.filter((e) => weekISOs.includes(e.date));
+    const weekHours = weekEntries.reduce((s, e) => s + e.hours, 0);
+    const weekEarnings = weekEntries.reduce((s, e) => s + e.total, 0);
+    document.getElementById("weekHours").textContent = fmtHours(weekHours);
+    document.getElementById("weekEarnings").textContent = fmtMoney(weekEarnings);
+
+    const dayTotals = weekISOs.map((iso) =>
+      entries.filter((e) => e.date === iso).reduce((s, e) => s + e.hours, 0)
+    );
+    const maxHours = Math.max(1, ...dayTotals);
+    const todayIso = todayISO();
+
+    const chart = document.getElementById("weekChart");
+    chart.innerHTML = weekDates.map((d, i) => {
+      const iso = weekISOs[i];
+      const h = dayTotals[i];
+      const heightPct = Math.round((h / maxHours) * 100);
+      const isToday = iso === todayIso;
+      return `
+        <div class="flex flex-col items-center gap-2 flex-1">
+          <span class="font-label-sm text-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"}">${h > 0 ? h.toFixed(1) : ""}</span>
+          <div class="day-bar-track"><div class="day-bar-fill" style="height:${heightPct}%"></div></div>
+          <span class="font-label-sm text-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"}">${DAY_NAMES[d.getDay()]}</span>
+        </div>`;
+    }).join("");
+
+    const historyList = document.getElementById("historyList");
+    const sorted = entries.slice().sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
+    if (sorted.length === 0) {
+      historyList.innerHTML = `<p class="font-label-sm text-label-sm text-on-surface-variant text-center py-6">Aún no hay registros.</p>`;
+    } else {
+      historyList.innerHTML = sorted.map((e) => entryRowHTML(e, true)).join("");
+      attachDeleteHandlers(historyList);
+    }
+  }
+
+  document.getElementById("clearAllBtn").addEventListener("click", () => {
+    if (entries.length === 0) return;
+    if (confirm("¿Borrar todos los registros? Esta acción no se puede deshacer.")) {
+      entries = [];
+      saveEntries(entries);
+      renderToday();
+      renderWeekly();
+      renderProfile();
+    }
+  });
+
+  // ---------- Profile view ----------
+  const profileNameInput = document.getElementById("profileName");
+  const defaultRateInput = document.getElementById("defaultRate");
+  const dailyGoalInput = document.getElementById("dailyGoal");
+
+  function renderProfile() {
+    profileNameInput.value = profile.name || "";
+    defaultRateInput.value = profile.defaultRate || "";
+    dailyGoalInput.value = profile.dailyGoal || "";
+
+    const totalHours = entries.reduce((s, e) => s + e.hours, 0);
+    const totalEarnings = entries.reduce((s, e) => s + e.total, 0);
+    document.getElementById("totalHoursAllTime").textContent = fmtHours(totalHours);
+    document.getElementById("totalEarningsAllTime").textContent = fmtMoney(totalEarnings);
+  }
+
+  document.getElementById("saveProfileBtn").addEventListener("click", () => {
+    profile = {
+      name: profileNameInput.value.trim(),
+      defaultRate: defaultRateInput.value,
+      dailyGoal: dailyGoalInput.value
+    };
+    saveProfile(profile);
+    renderHeader();
+    renderToday();
+    const msg = document.getElementById("profileSavedMsg");
+    msg.style.opacity = "1";
+    setTimeout(() => (msg.style.opacity = "0"), 1600);
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    if (entries.length === 0) { alert("No hay registros para exportar."); return; }
+    const header = "Fecha,Horas,Valor por hora,Total\n";
+    const rows = entries
+      .slice()
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((e) => `${e.date},${e.hours},${e.rate.toFixed(2)},${e.total.toFixed(2)}`)
+      .join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `brillita-registros-${todayISO()}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- Init ----------
+  renderHeader();
+  prefillForm();
+  renderToday();
+
+  // Register service worker for offline / add-to-home-screen support
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
