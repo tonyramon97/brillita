@@ -93,7 +93,7 @@
 </script>
 
 <style>
-  body { font-family: 'Inter', sans-serif; background-color: #fbf9f8; color: #1b1c1c; -webkit-tap-highlight-color: transparent; min-height: max(884px, 100dvh); padding-top: env(safe-area-inset-top); }
+  body { font-family: 'Inter', sans-serif; background-color: #fbf9f8; color: #1b1c1c; -webkit-tap-highlight-color: transparent; min-height: max(884px, 100dvh); }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; vertical-align: middle; }
   .input-minimal { background-color: #f5f3f3; border: none; border-radius: 0.75rem; padding: 1rem; width: 100%; transition: all 0.2s ease; font-variant-numeric: tabular-nums; }
@@ -124,7 +124,7 @@
 </div>
 
 <!-- TopAppBar -->
-<header class="w-full top-0 sticky z-40 flex items-center justify-between px-container-padding h-16 bg-surface transition-colors">
+<header class="w-full top-0 sticky z-40 flex items-center justify-between px-container-padding bg-surface transition-colors" style="padding-top: env(safe-area-inset-top); min-height: calc(4rem + env(safe-area-inset-top));">
   <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container">
       <img id="headerAvatarImg" class="w-full h-full object-cover hidden"/>
@@ -501,7 +501,7 @@
     try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) || {}; }
     catch { return {}; }
   };
-  const saveProfile = (p) => localStorage.setItem(PROFILE_KEY, JSON.stringify(p));
+  const saveProfile = (p) => { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(p)); } catch (e) { alert(t("storageError")); } };
 
   let entries = loadEntries();
   let profile = loadProfile();
@@ -605,6 +605,7 @@
       noHistory: "Aún no hay registros.",
       confirmDeleteAll: "¿Borrar todos los registros? Esta acción no se puede deshacer.",
       noExport: "No hay registros para exportar.",
+      storageError: "Error al guardar. Espacio insuficiente.",
       saved: "Guardado",
       navRecord: "Registrar",
       navWeekly: "Semanal",
@@ -672,6 +673,7 @@
       noHistory: "No entries yet.",
       confirmDeleteAll: "Delete all entries? This action cannot be undone.",
       noExport: "No records to export.",
+      storageError: "Save failed. Not enough storage.",
       saved: "Saved",
       navRecord: "Record",
       navWeekly: "Weekly",
@@ -1117,20 +1119,35 @@
     askAndSaveProfile("dailyGoal", t("editGoal"), profile.dailyGoal);
   });
 
+  function compressImage(file, maxW, maxQ, cb) {
+    const img = new Image();
+    img.onload = function () {
+      URL.revokeObjectURL(img.src);
+      const c = document.createElement("canvas");
+      let w = img.width, h = img.height;
+      if (w > maxW || h > maxW) {
+        const r = Math.min(maxW / w, maxW / h);
+        w *= r; h *= r;
+      }
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      cb(c.toDataURL("image/jpeg", maxQ));
+    };
+    img.onerror = function () { cb(null); };
+    img.src = URL.createObjectURL(file);
+  }
   document.getElementById("profileAvatarBtn").addEventListener("click", function () {
     document.getElementById("profilePhotoInput").click();
   });
   document.getElementById("profilePhotoInput").addEventListener("change", function (e) {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (ev) {
-      profile.photo = ev.target.result;
+    compressImage(file, 256, 0.7, function (dataUrl) {
+      profile.photo = dataUrl;
       saveProfile(profile);
       renderProfile();
       renderHeader();
-    };
-    reader.readAsDataURL(file);
+    });
     e.target.value = "";
   });
 
