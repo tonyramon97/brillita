@@ -1013,11 +1013,10 @@
       const heightPct = Math.round((h / maxHours) * 100);
       const isToday = iso === todayIso && weekOffset === 0;
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-      const barColor = isWeekend ? "bg-surface-container-high" : (d.getDay() === 3 ? "bg-secondary-container" : "bg-primary");
       return `
         <div class="flex flex-col items-center flex-1 group">
-          <div class="w-full bg-surface-container h-32 rounded-t-lg relative overflow-hidden">
-            <div class="absolute bottom-0 left-0 w-full ${barColor} chart-bar-transition group-hover:brightness-110" style="height:0%" data-height="${heightPct}"></div>
+          <div class="w-full h-32 rounded-t-lg relative overflow-hidden" style="background:#efeded">
+            <div class="absolute bottom-0 left-0 w-full chart-bar-transition group-hover:brightness-110" style="height:0%;${isWeekend ? 'background:#eae8e7' : (d.getDay() === 3 ? 'background:#ffb68d' : 'background:#00666d')}" data-height="${heightPct}"></div>
           </div>
           <span class="text-label-sm font-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"} mt-3">${DAY_SHORT[d.getDay()]}</span>
         </div>`;
