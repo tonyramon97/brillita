@@ -1,7 +1,7 @@
 // Registro de Horas - Service Worker
 // Cachea el shell de la app para que funcione sin conexión una vez instalada.
 
-const CACHE_NAME = "registro-horas-cache-v1";
+const CACHE_NAME = "registro-horas-cache-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
