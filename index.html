@@ -1005,29 +1005,24 @@
     );
     const maxHours = Math.max(1, ...dayTotals);
     const todayIso = todayISO();
+    const barHeightPx = 128;
 
     const chart = document.getElementById("weekChart");
     chart.innerHTML = weekDates.map((d, i) => {
       const iso = weekISOs[i];
       const h = dayTotals[i];
-      const heightPct = Math.round((h / maxHours) * 100);
+      const px = Math.round((h / maxHours) * barHeightPx);
       const isToday = iso === todayIso && weekOffset === 0;
       const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+      const bg = isWeekend ? '#eae8e7' : (d.getDay() === 3 ? '#ffb68d' : '#00666d');
       return `
         <div class="flex flex-col items-center flex-1 group">
           <div class="w-full h-32 rounded-t-lg relative overflow-hidden" style="background:#efeded">
-            <div class="absolute bottom-0 left-0 w-full chart-bar-transition group-hover:brightness-110" style="height:0%;${isWeekend ? 'background:#eae8e7' : (d.getDay() === 3 ? 'background:#ffb68d' : 'background:#00666d')}" data-height="${heightPct}"></div>
+            <div class="absolute bottom-0 left-0 w-full" style="height:${px}px;background:${bg}"></div>
           </div>
           <span class="text-label-sm font-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"} mt-3">${DAY_SHORT[d.getDay()]}</span>
         </div>`;
     }).join("");
-
-    // Animate chart bars
-    requestAnimationFrame(() => {
-      chart.querySelectorAll(".chart-bar-transition").forEach((bar, i) => {
-        setTimeout(() => { bar.style.height = bar.dataset.height + "%"; }, i * 80);
-      });
-    });
 
     // History list
     const historyList = document.getElementById("historyList");
