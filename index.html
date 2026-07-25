@@ -862,6 +862,7 @@
         timeOutInput.value = "";
         updatePreview();
         renderToday();
+        renderWeekly();
       }, 1100);
     }, 500);
   });
@@ -1121,6 +1122,7 @@
       saveProfile(profile);
       renderHeader();
       renderToday();
+      renderWeekly();
       renderProfile();
       if (key === "defaultRate") prefillForm();
     });
