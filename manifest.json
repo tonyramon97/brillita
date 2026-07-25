@@ -1,6 +1,6 @@
 {
-  "name": "Brillita - Registro de Horas",
-  "short_name": "Brillita",
+  "name": "Registro de Horas",
+  "short_name": "Registro Horas",
   "description": "Registra tus horas trabajadas y calcula tus ganancias al instante.",
   "start_url": "./index.html",
   "scope": "./",

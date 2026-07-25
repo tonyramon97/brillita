@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<title>Brillita - Registro Diario</title>
+<title>Registro de Horas</title>
 
 <!-- PWA / iOS home screen -->
 <link rel="manifest" href="manifest.json"/>
@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Brillita"/>
+<meta name="apple-mobile-web-app-title" content="Registro de Horas"/>
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png"/>
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32"/>
 
@@ -20,7 +20,6 @@
 
 <script id="tailwind-config">
   tailwind.config = {
-    darkMode: "class",
     theme: {
       extend: {
         colors: {
@@ -59,7 +58,7 @@
           "primary-fixed-dim": "#70d6df",
           "tertiary-fixed": "#e0e3e3",
           "on-error-container": "#93000a",
-          "on-tertiary-fixed": "#181c1d",
+          "on-tertiary-fixed": "#181d1d",
           "on-tertiary-fixed-variant": "#434748",
           "outline": "#6d797a",
           "on-tertiary-container": "#fafdfd",
@@ -94,7 +93,8 @@
 </script>
 
 <style>
-  body { font-family: 'Inter', sans-serif; background-color: #fbf9f8; color: #1b1c1c; -webkit-tap-highlight-color: transparent; min-height: max(884px, 100dvh); }
+  body { font-family: 'Inter', sans-serif; background-color: #fbf9f8; color: #1b1c1c; -webkit-tap-highlight-color: transparent; min-height: max(884px, 100dvh); padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
   .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; display: inline-block; line-height: 1; vertical-align: middle; }
   .input-minimal { background-color: #f5f3f3; border: none; border-radius: 0.75rem; padding: 1rem; width: 100%; transition: all 0.2s ease; font-variant-numeric: tabular-nums; }
   .input-minimal:focus { outline: 2px solid #00666d; background-color: #ffffff; box-shadow: 0 4px 12px rgba(0, 105, 112, 0.08); }
@@ -111,21 +111,36 @@
   .entry-swipe { transition: transform 0.15s ease, opacity 0.15s ease; }
   ::-webkit-scrollbar { display: none; }
   @media (prefers-reduced-motion: reduce) { .animated-entry, .progress-fill, .day-bar-fill, .entry-swipe { animation: none !important; transition: none !important; } }
+  html { scroll-behavior: smooth; }
+  :focus-visible { outline: 2px solid #00666d; outline-offset: 2px; }
+  .chart-bar-transition { transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
+<!-- Splash Screen -->
+<div id="splash" class="fixed inset-0 z-[100] flex items-center justify-center bg-surface" style="transition: opacity 0.5s ease;">
+  <img src="portada1.png" alt="Cargando" class="w-full h-full object-cover"/>
+</div>
+
 <!-- TopAppBar -->
 <header class="w-full top-0 sticky z-40 flex items-center justify-between px-container-padding h-16 bg-surface transition-colors">
   <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-headline-md-mobile shrink-0">
-      <span id="avatarInitial">B</span>
+      <div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container">
+      <img id="headerAvatarImg" class="w-full h-full object-cover hidden"/>
+      <div id="avatarInitial" class="w-full h-full bg-primary flex items-center justify-center text-on-primary font-headline-md-mobile">B</div>
     </div>
-    <h1 id="greeting" class="font-headline-md-mobile text-headline-md-mobile text-primary">¡Hola!</h1>
+    <h1 id="greeting" class="font-headline-md text-headline-md-mobile text-primary">¡Hola!</h1>
   </div>
-  <button id="themeInfoBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150" aria-label="Info">
-    <span class="material-symbols-outlined text-primary">savings</span>
-  </button>
+  <div class="flex items-center gap-1">
+     <button id="langBtn" class="flex items-center gap-1 px-2 h-10 rounded-full hover:bg-surface-container-low transition-colors active:scale-90 duration-150" aria-label="Idioma">
+      <span id="langFlag" class="flex items-center justify-center w-6 h-6 rounded-sm overflow-hidden"></span>
+      <span id="langLabel" class="font-label-sm text-label-sm text-primary font-semibold">ES</span>
+    </button>
+    <button id="themeInfoBtn" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container-low transition-colors active:scale-95 duration-150" aria-label="Info">
+      <span class="material-symbols-outlined text-primary">savings</span>
+    </button>
+  </div>
 </header>
 
 <main class="flex-1 px-container-padding pt-6 pb-32 max-w-md mx-auto w-full">
@@ -137,7 +152,7 @@
       <div class="relative h-32 rounded-xl overflow-hidden mb-gutter bg-gradient-to-br from-primary to-primary-container flex items-end p-4">
         <div>
           <p id="todayDate" class="text-white font-label-md text-label-md opacity-90">—</p>
-          <h2 class="text-white font-headline-md text-headline-md-mobile">¿Qué logramos hoy?</h2>
+          <h2 class="text-white font-headline-md text-headline-md-mobile" data-i18n="recordTitle">¿Qué logramos hoy?</h2>
         </div>
       </div>
     </div>
@@ -146,24 +161,37 @@
       <div class="bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container">
         <form class="space-y-gutter" id="dailyForm" novalidate>
           <div class="space-y-stack-sm">
-            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="entryDate">Fecha</label>
+            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="entryDate" data-i18n="dateLabel">Fecha</label>
             <input class="input-minimal text-body-md font-body-md text-on-surface" id="entryDate" type="date" required/>
           </div>
-          <div class="space-y-stack-sm">
-            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="hours">Horas trabajadas</label>
-            <input class="input-minimal text-body-lg font-body-lg text-primary" id="hours" inputmode="decimal" placeholder="0.0" required step="0.25" min="0" max="24" type="number"/>
+          <div class="grid grid-cols-2 gap-gutter">
+            <div class="space-y-stack-sm">
+              <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="timeIn" data-i18n="timeIn">Hora de ingreso</label>
+              <input class="input-minimal text-body-lg font-body-lg text-primary" id="timeIn" required type="time"/>
+            </div>
+            <div class="space-y-stack-sm">
+              <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="timeOut" data-i18n="timeOut">Hora de salida</label>
+              <input class="input-minimal text-body-lg font-body-lg text-primary" id="timeOut" required type="time"/>
+            </div>
           </div>
+           <p id="overnightNote" class="font-label-sm text-label-sm text-on-surface-variant ml-1 hidden" data-i18n="overnightNote">
+            <span class="material-symbols-outlined text-[14px] align-text-bottom">dark_mode</span>
+            Turno nocturno: la salida se calcula al día siguiente.
+          </p>
           <div class="space-y-stack-sm">
-            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="rate">Valor por hora ($)</label>
+            <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="rate" data-i18n="rateLabel">Valor por hora ($)</label>
             <input class="input-minimal text-body-lg font-body-lg text-primary" id="rate" inputmode="decimal" placeholder="0.00" required step="0.01" min="0" type="number"/>
           </div>
           <div class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
-            <span class="font-label-sm text-label-sm text-on-surface-variant">Total del registro</span>
+            <div>
+              <span class="font-label-sm text-label-sm text-on-surface-variant block" data-i18n="timeLogged">Tiempo registrado</span>
+              <span id="livePreviewDuration" class="font-label-md text-label-md text-on-surface">0h 0m</span>
+            </div>
             <span id="livePreview" class="font-headline-md text-headline-md-mobile text-secondary">$0.00</span>
           </div>
           <button class="w-full h-14 bg-primary text-on-primary rounded-full font-headline-md text-headline-md-mobile flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all duration-200" type="submit" id="submitBtn">
             <span class="material-symbols-outlined">task_alt</span>
-            Registrar Día
+            <span data-i18n="registerDay">Registrar Día</span>
           </button>
         </form>
       </div>
@@ -171,16 +199,16 @@
 
     <div class="animated-entry space-y-stack-md" style="animation-delay:.15s">
       <div class="flex items-center justify-between">
-        <h3 class="font-label-md text-label-md text-on-surface">Resumen de hoy</h3>
+        <h3 class="font-label-md text-label-md text-on-surface" data-i18n="todaySummary">Resumen de hoy</h3>
         <span id="todayVsYesterday" class="font-label-sm text-label-sm text-primary flex items-center gap-1"></span>
       </div>
       <div class="grid grid-cols-2 gap-gutter">
         <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-          <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia Total</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="totalEarnings">Ganancia Total</p>
           <p id="todayEarnings" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
         </div>
         <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-          <p class="font-label-sm text-label-sm text-on-surface-variant">Meta Diaria</p>
+          <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="dailyGoal">Meta Diaria</p>
           <div class="mt-2 space-y-2">
             <div class="progress-track"><div class="progress-fill" id="goalProgressFill"></div></div>
             <p class="font-label-sm text-label-sm text-on-surface text-right" id="goalProgressPct">0%</p>
@@ -199,7 +227,7 @@
     </div>
 
     <div class="animated-entry space-y-stack-sm" style="animation-delay:.2s" id="todayEntriesWrap">
-      <h3 class="font-label-md text-label-md text-on-surface">Registros de hoy</h3>
+      <h3 class="font-label-md text-label-md text-on-surface" data-i18n="entriesToday">Registros de hoy</h3>
       <div id="todayEntriesList" class="space-y-2"></div>
     </div>
 
@@ -207,96 +235,251 @@
 
   <!-- ===================== WEEKLY VIEW ===================== -->
   <section id="view-weekly" class="view space-y-stack-lg">
-    <div class="animated-entry" style="animation-delay:.05s">
-      <h2 class="font-headline-md text-headline-md text-primary mb-1">Resumen Semanal</h2>
-      <p class="font-label-sm text-label-sm text-on-surface-variant" id="weekRangeLabel">—</p>
-    </div>
 
-    <div class="animated-entry grid grid-cols-2 gap-gutter" style="animation-delay:.1s">
-      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-        <p class="font-label-sm text-label-sm text-on-surface-variant">Horas Semana</p>
-        <p id="weekHours" class="font-headline-md text-headline-md text-primary mt-1">0.0h</p>
+    <!-- Header & Date Picker -->
+    <section class="animated-entry flex items-center justify-between" style="animation-delay:.05s">
+      <div>
+        <h2 class="font-headline-md text-headline-md-mobile text-on-surface" data-i18n="weeklyTitle">Resumen Semanal</h2>
+        <p class="font-label-md text-label-md text-on-surface-variant" id="weekRangeLabel">—</p>
       </div>
-      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-        <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia Semana</p>
-        <p id="weekEarnings" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
+      <div class="flex gap-2">
+        <button id="weekPrevBtn" class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-low text-primary active:scale-95 duration-150">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button id="weekNextBtn" class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-low text-primary active:scale-95 duration-150">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
       </div>
-    </div>
+    </section>
 
-    <div class="animated-entry bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container" style="animation-delay:.15s">
-      <div class="flex items-end justify-between gap-2" id="weekChart"></div>
-    </div>
+    <!-- KPI Bento Grid -->
+    <section class="animated-entry grid grid-cols-2 gap-stack-md" style="animation-delay:.1s">
+      <div class="bg-surface-container-low p-5 rounded-2xl border border-outline-variant/30 shadow-sm flex flex-col justify-between aspect-square md:aspect-auto md:h-32">
+        <div class="flex items-center justify-between">
+          <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">schedule</span>
+          <span class="text-label-sm font-label-md text-primary bg-primary/10 px-2 py-0.5 rounded-full" id="weekHoursChange">+0%</span>
+        </div>
+        <div>
+          <p class="text-headline-lg font-headline-lg text-on-surface leading-none" id="weekHours">0.0</p>
+          <p class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider mt-1" data-i18n="weekHours">Horas Totales</p>
+        </div>
+      </div>
+      <div class="bg-primary p-5 rounded-2xl shadow-sm flex flex-col justify-between aspect-square md:aspect-auto md:h-32">
+        <div class="flex items-center justify-between">
+          <span class="material-symbols-outlined text-on-primary" style="font-variation-settings: 'FILL' 1;">payments</span>
+          <span class="material-symbols-outlined text-on-primary/60" id="weekEarningsIcon">trending_up</span>
+        </div>
+        <div>
+          <p class="text-headline-lg font-headline-lg text-on-primary leading-none" id="weekEarnings">$0</p>
+          <p class="text-label-sm text-label-sm text-on-primary/80 uppercase tracking-wider mt-1" data-i18n="weekEarnings">Ingresos Est.</p>
+        </div>
+      </div>
+    </section>
 
-    <div class="animated-entry space-y-stack-sm" style="animation-delay:.2s">
+    <!-- Bar Chart Section -->
+    <section class="animated-entry bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/20 shadow-sm" style="animation-delay:.15s">
+      <div class="flex items-center justify-between mb-8">
+        <h3 class="font-label-md font-label-md text-on-surface-variant uppercase tracking-widest" data-i18n="dailyActivity">Actividad Diaria</h3>
+        <div class="flex items-center gap-2">
+          <div class="w-3 h-3 rounded-full bg-primary"></div>
+          <span class="text-label-sm text-label-sm text-on-surface-variant" data-i18n="productivity">Productividad</span>
+        </div>
+      </div>
+      <div class="flex items-end justify-between h-48 px-2 gap-4" id="weekChart"></div>
+    </section>
+
+    <!-- History -->
+    <section class="animated-entry space-y-stack-sm" style="animation-delay:.2s">
       <div class="flex items-center justify-between">
-        <h3 class="font-label-md text-label-md text-on-surface">Historial</h3>
+        <h3 class="font-headline-md text-headline-md text-on-surface" data-i18n="history">Historial</h3>
         <button id="clearAllBtn" class="font-label-sm text-label-sm text-error flex items-center gap-1">
-          <span class="material-symbols-outlined text-[16px]">delete_sweep</span>Borrar todo
+          <span class="material-symbols-outlined text-[16px]">delete_sweep</span><span data-i18n="deleteAll">Borrar todo</span>
         </button>
       </div>
       <div id="historyList" class="space-y-2"></div>
-    </div>
+    </section>
+
+    <!-- Wellness Card -->
+    <section class="animated-entry relative overflow-hidden p-6 rounded-2xl text-tertiary-fixed-dim" style="animation-delay:.25s">
+      <div class="relative z-10 flex items-center justify-between">
+        <div class="max-w-[70%]">
+          <h4 class="font-headline-md text-headline-md text-white" id="wellnessTitle">Buen balance</h4>
+          <p class="text-label-md text-label-md text-white/70 mt-1" id="wellnessSub">Has mantenido un ritmo constante esta semana.</p>
+        </div>
+        <div class="w-16 h-16 rounded-full bg-primary-fixed/20 flex items-center justify-center animate-pulse">
+          <span class="material-symbols-outlined text-primary-fixed text-3xl">flare</span>
+        </div>
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-container via-primary to-on-primary-fixed-variant rounded-2xl"></div>
+    </section>
+
   </section>
 
   <!-- ===================== PROFILE VIEW ===================== -->
   <section id="view-profile" class="view space-y-stack-lg">
-    <div class="animated-entry" style="animation-delay:.05s">
-      <h2 class="font-headline-md text-headline-md text-primary mb-1">Perfil</h2>
-      <p class="font-label-sm text-label-sm text-on-surface-variant">Tus datos se guardan solo en este dispositivo.</p>
-    </div>
 
-    <div class="animated-entry bg-surface-container-lowest p-gutter rounded-xl card-shadow border border-surface-container space-y-gutter" style="animation-delay:.1s">
-      <div class="space-y-stack-sm">
-        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="profileName">Nombre</label>
-        <input class="input-minimal text-body-md font-body-md text-on-surface" id="profileName" placeholder="Tu nombre" type="text"/>
+    <!-- Profile Hero Card -->
+    <section class="mb-stack-lg animated-entry" style="animation-delay:.05s">
+      <div class="bg-surface-container-lowest rounded-xl p-stack-lg shadow-[0_4px_12px_rgba(0,0,0,0.06)] border border-outline-variant/30">
+        <div class="flex flex-col items-center text-center">
+          <div class="relative mb-stack-md">
+            <button id="profileAvatarBtn" class="w-24 h-24 rounded-full border-4 border-primary/10 p-1 cursor-pointer active:scale-95 transition-transform" aria-label="Cambiar foto">
+              <img id="profileAvatarImg" class="w-full h-full rounded-full object-cover hidden"/>
+              <div id="profileAvatar" class="w-full h-full rounded-full bg-primary flex items-center justify-center text-on-primary text-headline-lg font-bold">B</div>
+            </button>
+            <div class="absolute bottom-1 right-1 bg-secondary text-white p-1 rounded-full border-2 border-white pointer-events-none">
+              <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">camera_alt</span>
+            </div>
+            <input id="profilePhotoInput" type="file" accept="image/*" class="hidden"/>
+          </div>
+          <h2 id="profileDisplayName" class="font-headline-md text-headline-md text-on-surface">Usuario</h2>
+          <p class="font-body-md text-body-md text-on-surface-variant mb-stack-md" data-i18n="profileHeroSub">Enfocada en el bienestar personal</p>
+          
+        </div>
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 gap-gutter mt-stack-lg pt-stack-lg border-t border-surface-container">
+          <div class="text-center">
+            <p class="font-headline-md text-headline-md text-primary" id="profileTotalHours">0.0h</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="profileTotalHours">Horas totales</p>
+          </div>
+          <div class="text-center">
+            <p class="font-headline-md text-headline-md text-secondary" id="profileTotalEarnings">$0.00</p>
+            <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="profileTotalEarnings">Ganancia total</p>
+          </div>
+        </div>
       </div>
-      <div class="space-y-stack-sm">
-        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="defaultRate">Valor por hora predeterminado ($)</label>
-        <input class="input-minimal text-body-md font-body-md text-on-surface" id="defaultRate" inputmode="decimal" placeholder="0.00" step="0.01" min="0" type="number"/>
-      </div>
-      <div class="space-y-stack-sm">
-        <label class="font-label-sm text-label-sm text-on-surface-variant block ml-1" for="dailyGoal">Meta diaria ($)</label>
-        <input class="input-minimal text-body-md font-body-md text-on-surface" id="dailyGoal" inputmode="decimal" placeholder="0.00" step="0.01" min="0" type="number"/>
-      </div>
-      <button id="saveProfileBtn" class="w-full h-12 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-all duration-200">
-        <span class="material-symbols-outlined text-[18px]">save</span> Guardar
-      </button>
-      <p id="profileSavedMsg" class="text-center font-label-sm text-label-sm text-primary opacity-0 transition-opacity">Guardado ✓</p>
-    </div>
+    </section>
 
-    <div class="animated-entry grid grid-cols-2 gap-gutter" style="animation-delay:.15s">
-      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-        <p class="font-label-sm text-label-sm text-on-surface-variant">Horas totales</p>
-        <p id="totalHoursAllTime" class="font-headline-md text-headline-md text-primary mt-1">0.0h</p>
-      </div>
-      <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-        <p class="font-label-sm text-label-sm text-on-surface-variant">Ganancia total</p>
-        <p id="totalEarningsAllTime" class="font-headline-md text-headline-md text-secondary mt-1">$0.00</p>
-      </div>
-    </div>
+    <!-- Settings Options -->
+    <section class="space-y-stack-md animated-entry" style="animation-delay:.1s">
+      <h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider px-2" data-i18n="profileSettings">Ajustes de cuenta</h3>
+      <div class="grid grid-cols-1 gap-stack-sm">
 
-    <div class="animated-entry" style="animation-delay:.2s">
-      <button id="exportBtn" class="w-full h-12 bg-surface-container-low text-on-surface rounded-full font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-all duration-200 border border-outline-variant/40">
-        <span class="material-symbols-outlined text-[18px]">download</span> Exportar registros (CSV)
-      </button>
-    </div>
+        <button id="profileNameBtn" class="w-full flex items-center justify-between p-stack-md bg-surface-container-low hover:bg-surface-container-high transition-all rounded-xl active:scale-[0.98] duration-200 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined">badge</span>
+            </div>
+            <div class="text-left">
+              <p class="font-label-md text-label-md text-on-surface" data-i18n="profileName">Nombre</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant" id="profileNameSub">—</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </button>
+
+        <button id="profileRateBtn" class="w-full flex items-center justify-between p-stack-md bg-surface-container-low hover:bg-surface-container-high transition-all rounded-xl active:scale-[0.98] duration-200 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined">payments</span>
+            </div>
+            <div class="text-left">
+              <p class="font-label-md text-label-md text-on-surface" data-i18n="profileRate">Valor por hora</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant" id="profileRateSub">$0.00</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </button>
+
+        <button id="profileGoalBtn" class="w-full flex items-center justify-between p-stack-md bg-surface-container-low hover:bg-surface-container-high transition-all rounded-xl active:scale-[0.98] duration-200 group">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <span class="material-symbols-outlined">flag</span>
+            </div>
+            <div class="text-left">
+              <p class="font-label-md text-label-md text-on-surface" data-i18n="profileGoal">Meta diaria</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant" id="profileGoalSub">$0.00</p>
+            </div>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant group-hover:translate-x-1 transition-transform">chevron_right</span>
+        </button>
+
+      </div>
+
+      <!-- Export & Danger Zone -->
+      <div class="pt-stack-md space-y-stack-sm">
+        <button id="exportBtn" class="w-full flex items-center justify-center gap-2 p-stack-md text-on-surface border border-outline-variant/30 hover:bg-surface-container-high transition-all rounded-xl active:scale-[0.98] duration-200">
+          <span class="material-symbols-outlined">download</span>
+          <span class="font-label-md text-label-md" data-i18n="exportRecords">Exportar registros (CSV)</span>
+        </button>
+        <button id="clearAllBtnProfile" class="w-full flex items-center justify-center gap-2 p-stack-md text-error border border-error/20 hover:bg-error/5 transition-all rounded-xl active:scale-[0.98] duration-200">
+          <span class="material-symbols-outlined">delete_sweep</span>
+          <span class="font-label-md text-label-md" data-i18n="deleteAllRecords">Borrar todos los registros</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <section class="mt-8 opacity-40 animated-entry" style="animation-delay:.3s">
+      <div class="flex flex-col items-center justify-center text-center gap-2">
+        <div class="flex gap-1">
+          <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-secondary"></div>
+          <div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+        </div>
+        <p class="text-[10px] uppercase tracking-widest text-on-surface-variant">Registro de Horas v1.0.0</p>
+      </div>
+    </section>
+
+  </section>
+
+  <!-- ===================== SEARCH VIEW ===================== -->
+  <section id="view-search" class="view space-y-stack-lg">
+    <section class="animated-entry" style="animation-delay:.05s">
+      <h2 class="font-headline-md text-headline-md-mobile text-on-surface" data-i18n="dateRangeTitle">Buscar por fechas</h2>
+    </section>
+    <section class="animated-entry" style="animation-delay:.1s">
+      <div class="bg-surface-container-lowest rounded-xl p-stack-lg shadow-sm border border-outline-variant/20">
+        <div class="grid grid-cols-2 gap-gutter mb-stack-md">
+          <div>
+            <label class="font-label-sm text-label-sm text-on-surface-variant block mb-1" data-i18n="fromDate">Desde</label>
+            <input id="rangeFrom" type="date" class="input-minimal text-body-md"/>
+          </div>
+          <div>
+            <label class="font-label-sm text-label-sm text-on-surface-variant block mb-1" data-i18n="toDate">Hasta</label>
+            <input id="rangeTo" type="date" class="input-minimal text-body-md"/>
+          </div>
+        </div>
+        <button id="rangeSearchBtn" class="w-full h-12 bg-primary text-on-primary rounded-full font-label-md text-label-md flex items-center justify-center gap-2 active:scale-95 transition-all duration-200">
+          <span class="material-symbols-outlined text-[18px]">search</span>
+          <span data-i18n="calculate">Calcular</span>
+        </button>
+        <div id="rangeResults" class="hidden mt-stack-md space-y-stack-md">
+          <div class="grid grid-cols-2 gap-gutter">
+            <div class="bg-surface-container-low p-4 rounded-xl text-center">
+              <p class="font-headline-md text-headline-md text-primary" id="rangeHours">0.0h</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="totalHoursWorked">Horas trabajadas</p>
+            </div>
+            <div class="bg-surface-container-low p-4 rounded-xl text-center">
+              <p class="font-headline-md text-headline-md text-secondary" id="rangeEarnings">$0.00</p>
+              <p class="font-label-sm text-label-sm text-on-surface-variant" data-i18n="totalEarned">Total ganado</p>
+            </div>
+          </div>
+          <div id="rangeEntriesList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        </div>
+      </div>
+    </section>
   </section>
 
 </main>
 
 <!-- BottomNavBar -->
-<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(0,0,0,0.06)] rounded-t-xl transition-all">
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface-container-lowest shadow-[0_-4px_12px_rgba(0,0,0,0.06)] rounded-t-xl transition-colors">
   <button class="nav-btn active flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all active:scale-90 duration-200 text-on-surface-variant" data-view="record">
     <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_square</span>
-    <span class="font-label-sm text-label-sm mt-1">Registrar</span>
+    <span class="font-label-sm text-label-sm mt-1" data-i18n="navRecord">Registrar</span>
   </button>
   <button class="nav-btn flex flex-col items-center justify-center rounded-full px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 duration-200" data-view="weekly">
     <span class="material-symbols-outlined">equalizer</span>
-    <span class="font-label-sm text-label-sm mt-1">Semanal</span>
+    <span class="font-label-sm text-label-sm mt-1" data-i18n="navWeekly">Semanal</span>
+  </button>
+  <button class="nav-btn flex flex-col items-center justify-center rounded-full px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 duration-200" data-view="search">
+    <span class="material-symbols-outlined">search</span>
+    <span class="font-label-sm text-label-sm mt-1" data-i18n="navSearch">Buscar</span>
   </button>
   <button class="nav-btn flex flex-col items-center justify-center rounded-full px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 duration-200" data-view="profile">
     <span class="material-symbols-outlined">person</span>
-    <span class="font-label-sm text-label-sm mt-1">Perfil</span>
+    <span class="font-label-sm text-label-sm mt-1" data-i18n="navProfile">Perfil</span>
   </button>
 </nav>
 
@@ -325,7 +508,24 @@
 
   // ---------- Utils ----------
   const fmtMoney = (n) => "$" + (Number(n) || 0).toFixed(2);
-  const fmtHours = (n) => (Number(n) || 0).toFixed(1).replace(/\.0$/, ".0") + "h";
+  // Formats decimal hours as "Xh Ym" (e.g. 7.5 -> "7h 30m")
+  const fmtHours = (decimalHours) => {
+    const totalMinutes = Math.round((Number(decimalHours) || 0) * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return m === 0 ? `${h}h` : `${h}h ${m}m`;
+  };
+
+  // Computes worked minutes between two "HH:MM" times, rolling over to the
+  // next day if the exit time is not after the entry time (overnight shift).
+  function computeMinutes(timeIn, timeOut) {
+    if (!timeIn || !timeOut) return null;
+    const [inH, inM] = timeIn.split(":").map(Number);
+    const [outH, outM] = timeOut.split(":").map(Number);
+    let minutes = (outH * 60 + outM) - (inH * 60 + inM);
+    if (minutes <= 0) minutes += 24 * 60; // crossed midnight
+    return minutes;
+  }
   const todayISO = () => {
     const d = new Date();
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
@@ -337,6 +537,7 @@
   };
   const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
   const MONTH_NAMES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  let DAY_SHORT = ["D", "L", "M", "X", "J", "V", "S"];
 
   function startOfWeek(date) {
     const d = new Date(date);
@@ -364,8 +565,184 @@
     return c.toISOString().slice(0, 10);
   };
 
+  // ---------- Translation / i18n ----------
+  const LANG_KEY = "brillita.lang.v1";
+  const translations = {
+    es: {
+      _flag: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16" width="24" height="16"><rect width="24" height="4" fill="#AA151B"/><rect y="4" width="24" height="8" fill="#F1BF00"/><rect y="12" width="24" height="4" fill="#AA151B"/></svg>',
+      dayNames: ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"],
+      dayShort: ["D", "L", "M", "X", "J", "V", "S"],
+      monthNames: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+      greetingNoName: "¡Hola!",
+      greetingName: "¡Hola, {name}!",
+      recordTitle: "¿Qué logramos hoy?",
+      dateLabel: "Fecha",
+      timeIn: "Hora de ingreso",
+      timeOut: "Hora de salida",
+      overnightNote: "Turno nocturno: la salida se calcula al día siguiente.",
+      rateLabel: "Valor por hora ($)",
+      timeLogged: "Tiempo registrado",
+      registerDay: "Registrar Día",
+      todaySummary: "Resumen de hoy",
+      totalEarnings: "Ganancia Total",
+      dailyGoal: "Meta Diaria",
+      entriesToday: "Registros de hoy",
+      weeklyTitle: "Resumen Semanal",
+      weekHours: "Horas Totales",
+      weekEarnings: "Ingresos Est.",
+      dailyActivity: "Actividad Diaria",
+      productivity: "Productividad",
+      history: "Historial",
+      deleteAll: "Borrar todo",
+      noGoal: "Sin meta",
+      noEntriesYet: "Aún no registras horas hoy",
+      addFirstEntry: "Agrega tu primer registro del día.",
+      goalReachedTitle: "¡Meta diaria alcanzada!",
+      goalReachedSub: "Llevas {hours} productivas hoy.",
+      goodPathTitle: "¡Vas por muy buen camino!",
+      goodPathSub: "Has completado {hours} productivas.",
+      vsYesterday: "vs ayer",
+      noHistory: "Aún no hay registros.",
+      confirmDeleteAll: "¿Borrar todos los registros? Esta acción no se puede deshacer.",
+      noExport: "No hay registros para exportar.",
+      saved: "Guardado",
+      navRecord: "Registrar",
+      navWeekly: "Semanal",
+      navProfile: "Perfil",
+      navSearch: "Buscar",
+      profileHeroSub: "Enfocada en el bienestar personal",
+      profilePremium: "Premium",
+      profileProductivity: "Productividad",
+      profileTotalHours: "Horas totales",
+      profileTotalEarnings: "Ganancia total",
+      profileSettings: "Ajustes de cuenta",
+      profileName: "Nombre",
+      profileRate: "Valor por hora",
+      profileGoal: "Meta diaria",
+      profileAppearance: "Apariencia",
+      profileLightMode: "Modo Claro",
+      exportRecords: "Exportar registros (CSV)",
+      deleteAllRecords: "Borrar todos los registros",
+      editName: "Editar nombre",
+      editRate: "Valor por hora ($)",
+      editGoal: "Meta diaria ($)",
+      dateRangeTitle: "Buscar por fechas",
+      fromDate: "Desde",
+      toDate: "Hasta",
+      calculate: "Calcular",
+      totalHoursWorked: "Horas trabajadas",
+      totalEarned: "Total ganado",
+      "0h": "0h",
+      "0m": "0m",
+    },
+    en: {
+      _flag: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16" width="24" height="16"><rect width="24" height="16" fill="#B22234"/><rect y="2" width="24" height="2" fill="#FFF"/><rect y="6" width="24" height="2" fill="#FFF"/><rect y="10" width="24" height="2" fill="#FFF"/><rect y="14" width="24" height="2" fill="#FFF"/><rect x="0" y="0" width="10" height="8" fill="#3C3B6E"/></svg>',
+      dayNames: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      dayShort: ["S", "M", "T", "W", "T", "F", "S"],
+      monthNames: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+      greetingNoName: "Hello!",
+      greetingName: "Hello, {name}!",
+      recordTitle: "What did we achieve today?",
+      dateLabel: "Date",
+      timeIn: "Time in",
+      timeOut: "Time out",
+      overnightNote: "Night shift: exit time is calculated for the next day.",
+      rateLabel: "Hourly rate ($)",
+      timeLogged: "Time logged",
+      registerDay: "Register Day",
+      todaySummary: "Today's Summary",
+      totalEarnings: "Total Earnings",
+      dailyGoal: "Daily Goal",
+      entriesToday: "Today's entries",
+      weeklyTitle: "Weekly Summary",
+      weekHours: "Total Hours",
+      weekEarnings: "Est. Earnings",
+      dailyActivity: "Daily Activity",
+      productivity: "Productivity",
+      history: "History",
+      deleteAll: "Delete all",
+      noGoal: "No goal",
+      noEntriesYet: "No hours logged yet today",
+      addFirstEntry: "Add your first entry of the day.",
+      goalReachedTitle: "Daily goal reached!",
+      goalReachedSub: "You've logged {hours} productive hours today.",
+      goodPathTitle: "You're on a great path!",
+      goodPathSub: "You've completed {hours} productive hours.",
+      vsYesterday: "vs yesterday",
+      noHistory: "No entries yet.",
+      confirmDeleteAll: "Delete all entries? This action cannot be undone.",
+      noExport: "No records to export.",
+      saved: "Saved",
+      navRecord: "Record",
+      navWeekly: "Weekly",
+      navProfile: "Profile",
+      navSearch: "Search",
+      profileHeroSub: "Focused on personal well-being",
+      profilePremium: "Premium",
+      profileProductivity: "Productivity",
+      profileTotalHours: "Total hours",
+      profileTotalEarnings: "Total earnings",
+      profileSettings: "Account Settings",
+      profileName: "Name",
+      profileRate: "Hourly rate",
+      profileGoal: "Daily goal",
+      profileAppearance: "Appearance",
+      profileLightMode: "Light Mode",
+      exportRecords: "Export records (CSV)",
+      deleteAllRecords: "Delete all records",
+      editName: "Edit name",
+      editRate: "Hourly rate ($)",
+      editGoal: "Daily goal ($)",
+      dateRangeTitle: "Search by dates",
+      fromDate: "From",
+      toDate: "To",
+      calculate: "Calculate",
+      totalHoursWorked: "Hours worked",
+      totalEarned: "Total earned",
+      "0h": "0h",
+      "0m": "0m",
+    }
+  };
+
+  let currentLang = localStorage.getItem(LANG_KEY) || "es";
+  let weekOffset = 0;
+
+  function t(key, ...args) {
+    let str = translations[currentLang]?.[key] ?? translations["es"]?.[key] ?? key;
+    if (args.length) { str = str.replace(/\{(\w+)\}/g, (_, k) => args[0][k] ?? `{${k}}`); }
+    return str;
+  }
+
+  function applyTranslations() {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.dataset.i18n;
+      el.textContent = t(key);
+    });
+    DAY_NAMES.length = 0; DAY_NAMES.push(...translations[currentLang].dayNames);
+    MONTH_NAMES.length = 0; MONTH_NAMES.push(...translations[currentLang].monthNames);
+    if (translations[currentLang].dayShort) {
+      DAY_SHORT = translations[currentLang].dayShort;
+    }
+    document.getElementById("langFlag").innerHTML = translations[currentLang]._flag;
+    document.getElementById("langLabel").textContent = currentLang.toUpperCase();
+  }
+
+  function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem(LANG_KEY, lang);
+    applyTranslations();
+    renderHeader();
+    renderToday();
+    renderWeekly();
+    renderProfile();
+  }
+
+  document.getElementById("langBtn").addEventListener("click", () => {
+    setLanguage(currentLang === "es" ? "en" : "es");
+  });
+
   // ---------- Navigation ----------
-  const views = { record: document.getElementById("view-record"), weekly: document.getElementById("view-weekly"), profile: document.getElementById("view-profile") };
+  const views = { record: document.getElementById("view-record"), weekly: document.getElementById("view-weekly"), search: document.getElementById("view-search"), profile: document.getElementById("view-profile") };
   const navBtns = document.querySelectorAll(".nav-btn");
 
   function switchView(name) {
@@ -380,26 +757,54 @@
   // ---------- Header / greeting ----------
   function renderHeader() {
     const name = (profile.name || "").trim();
-    document.getElementById("greeting").textContent = name ? `¡Hola, ${name}!` : "¡Hola!";
+    document.getElementById("greeting").textContent = name ? t("greetingName", { name }) : t("greetingNoName");
     document.getElementById("avatarInitial").textContent = name ? name[0].toUpperCase() : "B";
+    const photoUrl = profile.photo || "";
+    const headerImg = document.getElementById("headerAvatarImg");
+    const headerInitial = document.getElementById("avatarInitial");
+    if (photoUrl) {
+      headerImg.src = photoUrl; headerImg.classList.remove("hidden"); headerInitial.classList.add("hidden");
+    } else {
+      headerImg.classList.add("hidden"); headerInitial.classList.remove("hidden");
+    }
     const now = new Date();
-    document.getElementById("todayDate").textContent =
-      `${DAY_NAMES[now.getDay()]}, ${now.getDate()} de ${MONTH_NAMES[now.getMonth()]}`;
+    const dateStr = currentLang === "en"
+      ? `${DAY_NAMES[now.getDay()]}, ${MONTH_NAMES[now.getMonth()]} ${now.getDate()}`
+      : `${DAY_NAMES[now.getDay()]}, ${now.getDate()} de ${MONTH_NAMES[now.getMonth()]}`;
+    document.getElementById("todayDate").textContent = dateStr;
   }
 
   // ---------- Record view ----------
   const dailyForm = document.getElementById("dailyForm");
-  const hoursInput = document.getElementById("hours");
+  const timeInInput = document.getElementById("timeIn");
+  const timeOutInput = document.getElementById("timeOut");
   const rateInput = document.getElementById("rate");
   const entryDateInput = document.getElementById("entryDate");
   const livePreview = document.getElementById("livePreview");
+  const livePreviewDuration = document.getElementById("livePreviewDuration");
+  const overnightNote = document.getElementById("overnightNote");
 
   function updatePreview() {
-    const h = parseFloat(hoursInput.value) || 0;
+    const minutes = computeMinutes(timeInInput.value, timeOutInput.value);
     const r = parseFloat(rateInput.value) || 0;
-    livePreview.textContent = fmtMoney(h * r);
+
+    if (minutes == null) {
+      livePreviewDuration.textContent = "0h 0m";
+      livePreview.textContent = fmtMoney(0);
+      overnightNote.classList.add("hidden");
+      return;
+    }
+
+    const decimalHours = minutes / 60;
+    livePreviewDuration.textContent = fmtHours(decimalHours);
+    livePreview.textContent = fmtMoney(decimalHours * r);
+
+    // Show overnight note when exit clock-time is not after entry clock-time
+    const crossesMidnight = timeOutInput.value <= timeInInput.value;
+    overnightNote.classList.toggle("hidden", !crossesMidnight);
   }
-  hoursInput.addEventListener("input", updatePreview);
+  timeInInput.addEventListener("input", updatePreview);
+  timeOutInput.addEventListener("input", updatePreview);
   rateInput.addEventListener("input", updatePreview);
 
   function prefillForm() {
@@ -412,28 +817,32 @@
 
   dailyForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const hours = parseFloat(hoursInput.value);
+    const timeIn = timeInInput.value;
+    const timeOut = timeOutInput.value;
     const rate = parseFloat(rateInput.value);
     const date = entryDateInput.value || todayISO();
+    const minutes = computeMinutes(timeIn, timeOut);
 
-    if (!hours || hours <= 0 || isNaN(rate) || rate < 0) return;
+    if (!minutes || minutes <= 0 || isNaN(rate) || rate < 0) return;
 
     const btn = document.getElementById("submitBtn");
     const original = btn.innerHTML;
     btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span>';
 
+    const hours = minutes / 60;
     entries.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      date, hours, rate, total: hours * rate,
+      date, timeIn, timeOut, minutes, hours, rate, total: hours * rate,
       createdAt: new Date().toISOString()
     });
     saveEntries(entries);
 
     setTimeout(() => {
-      btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Guardado';
+      btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> ' + t("saved");
       setTimeout(() => {
         btn.innerHTML = original;
-        hoursInput.value = "";
+        timeInInput.value = "";
+        timeOutInput.value = "";
         updatePreview();
         renderToday();
       }, 1100);
@@ -451,7 +860,7 @@
     const goal = parseFloat(profile.dailyGoal) || 0;
     const pct = goal > 0 ? Math.min(100, Math.round((totalEarnings / goal) * 100)) : 0;
     document.getElementById("goalProgressFill").style.width = pct + "%";
-    document.getElementById("goalProgressPct").textContent = goal > 0 ? pct + "%" : "Sin meta";
+    document.getElementById("goalProgressPct").textContent = goal > 0 ? pct + "%" : t("noGoal");
 
     // yesterday comparison
     const y = new Date(); y.setDate(y.getDate() - 1);
@@ -461,7 +870,7 @@
     if (yEarnings > 0) {
       const diff = ((totalEarnings - yEarnings) / yEarnings) * 100;
       const sign = diff >= 0 ? "+" : "";
-      cmp.innerHTML = `<span class="material-symbols-outlined text-[16px]">${diff >= 0 ? "trending_up" : "trending_down"}</span>${sign}${diff.toFixed(0)}% vs ayer`;
+      cmp.innerHTML = `<span class="material-symbols-outlined text-[16px]">${diff >= 0 ? "trending_up" : "trending_down"}</span>${sign}${diff.toFixed(0)}% ${t("vsYesterday")}`;
       cmp.classList.toggle("text-primary", diff >= 0);
       cmp.classList.toggle("text-error", diff < 0);
     } else {
@@ -473,16 +882,16 @@
     const msgIcon = document.getElementById("todayMessageIcon");
     if (todays.length === 0) {
       msgIcon.textContent = "bedtime";
-      msgTitle.textContent = "Aún no registras horas hoy";
-      msgSub.textContent = "Agrega tu primer registro del día.";
+      msgTitle.textContent = t("noEntriesYet");
+      msgSub.textContent = t("addFirstEntry");
     } else if (goal > 0 && totalEarnings >= goal) {
       msgIcon.textContent = "celebration";
-      msgTitle.textContent = "¡Meta diaria alcanzada!";
-      msgSub.textContent = `Llevas ${fmtHours(totalHours)} productivas hoy.`;
+      msgTitle.textContent = t("goalReachedTitle");
+      msgSub.textContent = t("goalReachedSub", { hours: fmtHours(totalHours) });
     } else {
       msgIcon.textContent = "trending_up";
-      msgTitle.textContent = "¡Vas por muy buen camino!";
-      msgSub.textContent = `Has completado ${fmtHours(totalHours)} productivas.`;
+      msgTitle.textContent = t("goodPathTitle");
+      msgSub.textContent = t("goodPathSub", { hours: fmtHours(totalHours) });
     }
 
     // today's entries list
@@ -502,12 +911,13 @@
   }
 
   function entryRowHTML(e, showDate) {
-    const dateLabel = showDate ? parseISO(e.date).toLocaleDateString("es-EC", { day: "2-digit", month: "short" }) : null;
+    const dateLabel = showDate ? parseISO(e.date).toLocaleDateString(currentLang === "en" ? "en-US" : "es-EC", { day: "2-digit", month: "short" }) : null;
+    const timeRange = (e.timeIn && e.timeOut) ? `${e.timeIn} – ${e.timeOut} · ` : "";
     return `
       <div class="entry-swipe flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3" data-id="${e.id}">
         <div>
           ${dateLabel ? `<p class="font-label-sm text-label-sm text-on-surface-variant">${dateLabel}</p>` : ""}
-          <p class="font-body-md text-body-md text-on-surface">${fmtHours(e.hours)} · ${fmtMoney(e.rate)}/h</p>
+          <p class="font-body-md text-body-md text-on-surface">${timeRange}${fmtHours(e.hours)} · ${fmtMoney(e.rate)}/h</p>
         </div>
         <div class="flex items-center gap-3">
           <span class="font-label-md text-label-md text-secondary">${fmtMoney(e.total)}</span>
@@ -533,20 +943,45 @@
 
   // ---------- Weekly view ----------
   function renderWeekly() {
-    const now = new Date();
-    const weekDates = getWeekDates(now);
+    const anchor = new Date();
+    anchor.setDate(anchor.getDate() + weekOffset * 7);
+    const weekDates = getWeekDates(anchor);
     const weekISOs = weekDates.map(isoOf);
+    const prevWeekDates = getWeekDates(new Date(anchor.getTime() - 7 * 86400000));
+    const prevWeekISOs = prevWeekDates.map(isoOf);
 
     const start = weekDates[0], end = weekDates[6];
-    document.getElementById("weekRangeLabel").textContent =
-      `${start.getDate()} - ${end.getDate()} de ${MONTH_NAMES[end.getMonth()]}`;
+    const rangeText = currentLang === "en"
+      ? `${MONTH_NAMES[start.getMonth()]} ${start.getDate()} — ${MONTH_NAMES[end.getMonth()]} ${end.getDate()}, ${end.getFullYear()}`
+      : `${start.getDate()} ${MONTH_NAMES[start.getMonth()]} — ${end.getDate()} ${MONTH_NAMES[end.getMonth()]}, ${end.getFullYear()}`;
+    document.getElementById("weekRangeLabel").textContent = rangeText;
 
     const weekEntries = entries.filter((e) => weekISOs.includes(e.date));
     const weekHours = weekEntries.reduce((s, e) => s + e.hours, 0);
     const weekEarnings = weekEntries.reduce((s, e) => s + e.total, 0);
-    document.getElementById("weekHours").textContent = fmtHours(weekHours);
-    document.getElementById("weekEarnings").textContent = fmtMoney(weekEarnings);
 
+    // KPI cards
+    document.getElementById("weekHours").textContent = weekHours.toFixed(1);
+    document.getElementById("weekEarnings").textContent = weekEarnings > 999
+      ? `$${(weekEarnings / 1).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+      : `$${weekEarnings.toFixed(0)}`;
+
+    // % change vs previous week
+    const prevWeekHours = entries.filter((e) => prevWeekISOs.includes(e.date)).reduce((s, e) => s + e.hours, 0);
+    const changePct = prevWeekHours > 0 ? Math.round(((weekHours - prevWeekHours) / prevWeekHours) * 100) : 0;
+    const changeEl = document.getElementById("weekHoursChange");
+    if (weekHours > 0 && prevWeekHours > 0) {
+      changeEl.textContent = (changePct >= 0 ? "+" : "") + changePct + "%";
+      changeEl.className = `text-label-sm font-label-md ${changePct >= 0 ? "text-primary" : "text-error"} bg-primary/10 px-2 py-0.5 rounded-full`;
+    } else {
+      changeEl.textContent = weekHours > 0 ? "+100%" : "—";
+      changeEl.className = "text-label-sm font-label-md text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full";
+    }
+
+    // Earnings icon trend
+    document.getElementById("weekEarningsIcon").textContent = changePct >= 0 ? "trending_up" : "trending_down";
+
+    // Bar chart
     const dayTotals = weekISOs.map((iso) =>
       entries.filter((e) => e.date === iso).reduce((s, e) => s + e.hours, 0)
     );
@@ -558,28 +993,70 @@
       const iso = weekISOs[i];
       const h = dayTotals[i];
       const heightPct = Math.round((h / maxHours) * 100);
-      const isToday = iso === todayIso;
+      const isToday = iso === todayIso && weekOffset === 0;
+      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+      const barColor = isWeekend ? "bg-surface-container-high" : (d.getDay() === 3 ? "bg-secondary-container" : "bg-primary");
       return `
-        <div class="flex flex-col items-center gap-2 flex-1">
-          <span class="font-label-sm text-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"}">${h > 0 ? h.toFixed(1) : ""}</span>
-          <div class="day-bar-track"><div class="day-bar-fill" style="height:${heightPct}%"></div></div>
-          <span class="font-label-sm text-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"}">${DAY_NAMES[d.getDay()]}</span>
+        <div class="flex flex-col items-center flex-1 group">
+          <div class="w-full bg-surface-container h-32 rounded-t-lg relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 w-full ${barColor} chart-bar-transition group-hover:brightness-110" style="height:0%" data-height="${heightPct}"></div>
+          </div>
+          <span class="text-label-sm font-label-sm ${isToday ? "text-primary font-bold" : "text-on-surface-variant"} mt-3">${DAY_SHORT[d.getDay()]}</span>
         </div>`;
     }).join("");
 
+    // Animate chart bars
+    requestAnimationFrame(() => {
+      chart.querySelectorAll(".chart-bar-transition").forEach((bar, i) => {
+        setTimeout(() => { bar.style.height = bar.dataset.height + "%"; }, i * 80);
+      });
+    });
+
+    // History list
     const historyList = document.getElementById("historyList");
     const sorted = entries.slice().sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt));
     if (sorted.length === 0) {
-      historyList.innerHTML = `<p class="font-label-sm text-label-sm text-on-surface-variant text-center py-6">Aún no hay registros.</p>`;
+      historyList.innerHTML = `<p class="font-label-sm text-label-sm text-on-surface-variant text-center py-6">${t("noHistory")}</p>`;
     } else {
       historyList.innerHTML = sorted.map((e) => entryRowHTML(e, true)).join("");
       attachDeleteHandlers(historyList);
     }
+
+    // Wellness card
+    const wellnessTitle = document.getElementById("wellnessTitle");
+    const wellnessSub = document.getElementById("wellnessSub");
+    const wName = (profile.name || "").trim() || "";
+    if (weekHours === 0) {
+      wellnessTitle.textContent = wName
+        ? (currentLang === "en" ? `Start logging, ${wName}!` : `Comienza a registrar, ${wName}.`)
+        : (currentLang === "en" ? "Start logging!" : "Comienza a registrar.");
+      wellnessSub.textContent = currentLang === "en" ? "Log your first hours to see your weekly progress." : "Registra tus primeras horas para ver tu progreso semanal.";
+    } else {
+      wellnessTitle.textContent = wName
+        ? (currentLang === "en" ? `Great balance, ${wName}!` : `Buen balance, ${wName}.`)
+        : (currentLang === "en" ? "Great balance!" : "Buen balance.");
+      wellnessSub.textContent = currentLang === "en"
+        ? `You've logged ${fmtHours(weekHours)} this week. Keep up the great work!`
+        : `Has registrado ${fmtHours(weekHours)} esta semana. ¡Sigue así!`;
+    }
+
+    // Disable prev/next buttons
+    document.getElementById("weekPrevBtn").disabled = false;
+    document.getElementById("weekNextBtn").disabled = false;
   }
+
+  document.getElementById("weekPrevBtn").addEventListener("click", () => {
+    weekOffset--;
+    renderWeekly();
+  });
+  document.getElementById("weekNextBtn").addEventListener("click", () => {
+    weekOffset++;
+    renderWeekly();
+  });
 
   document.getElementById("clearAllBtn").addEventListener("click", () => {
     if (entries.length === 0) return;
-    if (confirm("¿Borrar todos los registros? Esta acción no se puede deshacer.")) {
+    if (confirm(t("confirmDeleteAll"))) {
       entries = [];
       saveEntries(entries);
       renderToday();
@@ -589,37 +1066,76 @@
   });
 
   // ---------- Profile view ----------
-  const profileNameInput = document.getElementById("profileName");
-  const defaultRateInput = document.getElementById("defaultRate");
-  const dailyGoalInput = document.getElementById("dailyGoal");
-
   function renderProfile() {
-    profileNameInput.value = profile.name || "";
-    defaultRateInput.value = profile.defaultRate || "";
-    dailyGoalInput.value = profile.dailyGoal || "";
+    const name = (profile.name || "").trim() || "Usuario";
+    const initial = name[0].toUpperCase();
+    document.getElementById("profileDisplayName").textContent = name;
+    document.getElementById("avatarInitial").textContent = initial;
+    document.getElementById("profileAvatar").textContent = initial;
+
+    // Profile photo
+    const photoUrl = profile.photo || "";
+    const headerImg = document.getElementById("headerAvatarImg");
+    const headerInitial = document.getElementById("avatarInitial");
+    const profileImg = document.getElementById("profileAvatarImg");
+    const profileInitial = document.getElementById("profileAvatar");
+    if (photoUrl) {
+      headerImg.src = photoUrl; headerImg.classList.remove("hidden"); headerInitial.classList.add("hidden");
+      profileImg.src = photoUrl; profileImg.classList.remove("hidden"); profileInitial.classList.add("hidden");
+    } else {
+      headerImg.classList.add("hidden"); headerInitial.classList.remove("hidden");
+      profileImg.classList.add("hidden"); profileInitial.classList.remove("hidden");
+    }
+
+    document.getElementById("profileNameSub").textContent = name;
+    document.getElementById("profileRateSub").textContent = fmtMoney(parseFloat(profile.defaultRate) || 0);
+    document.getElementById("profileGoalSub").textContent = fmtMoney(parseFloat(profile.dailyGoal) || 0);
 
     const totalHours = entries.reduce((s, e) => s + e.hours, 0);
     const totalEarnings = entries.reduce((s, e) => s + e.total, 0);
-    document.getElementById("totalHoursAllTime").textContent = fmtHours(totalHours);
-    document.getElementById("totalEarningsAllTime").textContent = fmtMoney(totalEarnings);
+    document.getElementById("profileTotalHours").textContent = fmtHours(totalHours);
+    document.getElementById("profileTotalEarnings").textContent = fmtMoney(totalEarnings);
   }
 
-  document.getElementById("saveProfileBtn").addEventListener("click", () => {
-    profile = {
-      name: profileNameInput.value.trim(),
-      defaultRate: defaultRateInput.value,
-      dailyGoal: dailyGoalInput.value
-    };
+  function askAndSaveProfile(key, label, defaultValue) {
+    const val = prompt(label, defaultValue != null ? defaultValue : "");
+    if (val === null) return;
+    profile[key] = key === "name" ? val.trim() : val;
     saveProfile(profile);
     renderHeader();
     renderToday();
-    const msg = document.getElementById("profileSavedMsg");
-    msg.style.opacity = "1";
-    setTimeout(() => (msg.style.opacity = "0"), 1600);
+    renderProfile();
+  }
+
+  document.getElementById("profileNameBtn").addEventListener("click", function () {
+    askAndSaveProfile("name", t("editName"), profile.name);
+  });
+  document.getElementById("profileRateBtn").addEventListener("click", function () {
+    askAndSaveProfile("defaultRate", t("editRate"), profile.defaultRate);
+  });
+  document.getElementById("profileGoalBtn").addEventListener("click", function () {
+    askAndSaveProfile("dailyGoal", t("editGoal"), profile.dailyGoal);
   });
 
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    if (entries.length === 0) { alert("No hay registros para exportar."); return; }
+  document.getElementById("profileAvatarBtn").addEventListener("click", function () {
+    document.getElementById("profilePhotoInput").click();
+  });
+  document.getElementById("profilePhotoInput").addEventListener("change", function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (ev) {
+      profile.photo = ev.target.result;
+      saveProfile(profile);
+      renderProfile();
+      renderHeader();
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", function () {
+    if (entries.length === 0) { alert(t("noExport")); return; }
     const header = "Fecha,Horas,Valor por hora,Total\n";
     const rows = entries
       .slice()
@@ -630,17 +1146,71 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `brillita-registros-${todayISO()}.csv`;
+    a.download = `registro-horas-${todayISO()}.csv`;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
   });
 
+  document.getElementById("clearAllBtnProfile").addEventListener("click", function () {
+    if (entries.length === 0) return;
+    if (confirm(t("confirmDeleteAll"))) {
+      entries = [];
+      saveEntries(entries);
+      renderToday();
+      renderWeekly();
+      renderProfile();
+    }
+  });
+
+  // ---------- Date Range Search ----------
+  document.getElementById("rangeSearchBtn").addEventListener("click", function () {
+    const from = document.getElementById("rangeFrom").value;
+    const to = document.getElementById("rangeTo").value;
+    if (!from || !to) { alert(currentLang === "en" ? "Select both dates" : "Selecciona ambas fechas"); return; }
+    if (from > to) { alert(currentLang === "en" ? "From date must be before to date" : "La fecha inicial debe ser anterior a la final"); return; }
+
+    const filtered = entries.filter(e => e.date >= from && e.date <= to);
+    const totalHours = filtered.reduce((s, e) => s + e.hours, 0);
+    const totalEarnings = filtered.reduce((s, e) => s + e.total, 0);
+
+    document.getElementById("rangeHours").textContent = fmtHours(totalHours);
+    document.getElementById("rangeEarnings").textContent = fmtMoney(totalEarnings);
+
+    const list = document.getElementById("rangeEntriesList");
+    if (filtered.length === 0) {
+      list.innerHTML = `<p class="text-center text-on-surface-variant py-4 font-label-sm">${currentLang === "en" ? "No entries in this range" : "Sin registros en este rango"}</p>`;
+    } else {
+      list.innerHTML = filtered.slice().sort((a, b) => b.date.localeCompare(a.date))
+        .map(e => entryRowHTML(e, true)).join("");
+      attachDeleteHandlers(list);
+    }
+
+    document.getElementById("rangeResults").classList.remove("hidden");
+  });
+
   // ---------- Init ----------
+  // Hide splash screen after a brief moment
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+    if (splash) { splash.style.opacity = "0"; setTimeout(() => splash.remove(), 500); }
+  }, 1500);
+
+  applyTranslations();
   renderHeader();
   prefillForm();
   renderToday();
+
+  // ---------- Micro-interactions ----------
+  window.addEventListener("scroll", () => {
+    const header = document.querySelector("header");
+    if (window.scrollY > 20) {
+      header.classList.add("shadow-md");
+    } else {
+      header.classList.remove("shadow-md");
+    }
+  });
 
   // Register service worker for offline / add-to-home-screen support
   if ("serviceWorker" in navigator) {
